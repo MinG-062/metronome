@@ -8,58 +8,93 @@
     :root{
       --bg:#0b0c10; --panel:#12141a; --text:#e8eaf0; --muted:#a7adbb;
       --line:#242837; --accent:#8bf5c1; --warn:#ffd166;
-      --radius:16px;
+      --radius:18px;
     }
     *{box-sizing:border-box}
     body{
-      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo", "Noto Sans KR", Arial;
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo", "Noto Sans KR", Arial;
       background:transparent; color:var(--text);
     }
-    .wrap{
-      width:100%; height:100%;
-      padding:14px;
-    }
+    .wrap{ width:100%; height:100%; padding:14px; }
     .card{
       background:linear-gradient(180deg, rgba(18,20,26,.92), rgba(18,20,26,.78));
       border:1px solid var(--line);
       border-radius:var(--radius);
-      padding:14px;
-      box-shadow: 0 8px 30px rgba(0,0,0,.35);
+      padding:16px;
+      box-shadow: 0 10px 34px rgba(0,0,0,.36);
       backdrop-filter: blur(10px);
     }
-    .top{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      margin-bottom:10px;
+
+    /* === Header (center BPM badge + dot above) === */
+    .header{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:12px;
     }
-    .title{
-      display:flex; flex-direction:column; gap:2px;
+    .badgeWrap{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
     }
-    .title b{font-size:14px; letter-spacing:.2px}
-    .title span{font-size:12px; color:var(--muted)}
-    .pill{
-      font-variant-numeric: tabular-nums;
-      padding:8px 10px;
+    .dot{
+      width:12px; height:12px; border-radius:999px;
+      background:rgba(255,255,255,.18);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: 0 0 0 0 rgba(139,245,193,0);
+      transition: all .08s ease;
+    }
+    .dot.hit{
+      background: var(--accent);
+      box-shadow: 0 0 0 10px rgba(139,245,193,.12);
+      border-color: rgba(139,245,193,.55);
+    }
+    .dot.accent.hit{
+      background: var(--warn);
+      box-shadow: 0 0 0 10px rgba(255,209,102,.12);
+      border-color: rgba(255,209,102,.55);
+    }
+
+    .bpmBadge{
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+      padding:12px 18px;
       border:1px solid var(--line);
       border-radius:999px;
-      background:rgba(0,0,0,.2);
-      min-width:92px;
-      text-align:center;
-      font-weight:700;
+      background:rgba(0,0,0,.22);
+      font-variant-numeric: tabular-nums;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
     }
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
+    .bpmNum{
+      font-size:34px;
+      font-weight:900;
+      letter-spacing: .3px;
+      line-height:1;
+      min-width:84px;
+      text-align:right;
     }
-    .row{
-      display:flex; gap:10px; align-items:center;
+    .bpmUnit{
+      font-size:14px;
+      font-weight:800;
+      color:var(--muted);
+      letter-spacing:.8px;
+      text-transform:uppercase;
+      transform: translateY(-1px);
     }
+
+    /* === Controls === */
+    .grid{ display:grid; grid-template-columns: 1fr; gap:10px; }
+    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
     button{
       appearance:none; border:1px solid var(--line);
       background:rgba(0,0,0,.22); color:var(--text);
       border-radius:12px;
       padding:10px 12px;
-      font-weight:700;
+      font-weight:800;
       cursor:pointer;
       transition: transform .05s ease, background .15s ease, border-color .15s ease;
       user-select:none;
@@ -79,6 +114,7 @@
       background:rgba(255,209,102,.10);
       border-color: rgba(255,209,102,.45);
     }
+
     .controls{
       border:1px solid var(--line);
       border-radius:14px;
@@ -90,7 +126,13 @@
       display:flex; justify-content:space-between; align-items:center;
       margin-bottom:8px;
     }
-    input[type="range"]{width:100%}
+    input[type="range"]{ width:100% }
+
+    .split{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
     select{
       width:100%;
       border:1px solid var(--line);
@@ -100,52 +142,24 @@
       color:var(--text);
       outline:none;
     }
-    .tiny{
-      font-size:11px; color:var(--muted); line-height:1.4;
-      margin-top:8px;
-    }
-    .dot{
-      width:10px; height:10px; border-radius:999px;
-      background:rgba(255,255,255,.18);
-      border:1px solid rgba(255,255,255,.12);
-      box-shadow: 0 0 0 0 rgba(139,245,193,0);
-      transition: all .08s ease;
-    }
-    .dot.hit{
-      background: var(--accent);
-      box-shadow: 0 0 0 8px rgba(139,245,193,.12);
-      border-color: rgba(139,245,193,.55);
-    }
-    .dot.accent.hit{
-      background: var(--warn);
-      box-shadow: 0 0 0 8px rgba(255,209,102,.12);
-      border-color: rgba(255,209,102,.55);
-    }
-    .meter{
-      display:flex; align-items:center; gap:8px;
-    }
-    .split{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
     @media (max-width: 420px){
       .split{grid-template-columns: 1fr;}
-      .pill{min-width:86px}
+      .bpmNum{font-size:30px; min-width:78px}
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <div class="top">
-        <div class="title">
-          <b>Metronome</b>
-          <span>Notion embed friendly</span>
-        </div>
-        <div class="meter">
-          <div id="dot" class="dot accent"></div>
-          <div id="bpmPill" class="pill">120 BPM</div>
+
+      <!-- Header: dot above + BIG centered BPM badge -->
+      <div class="header">
+        <div class="badgeWrap">
+          <div id="dot" class="dot"></div>
+          <div class="bpmBadge" aria-label="BPM badge">
+            <div id="bpmNum" class="bpmNum">120</div>
+            <div class="bpmUnit">BPM</div>
+          </div>
         </div>
       </div>
 
@@ -163,7 +177,6 @@
             <span id="bpmText">120</span>
           </div>
           <input id="bpm" type="range" min="30" max="240" value="120" />
-          <div class="tiny">팁: 노션/브라우저는 자동재생을 막을 수 있어요. 처음엔 Start/Tap 같은 “사용자 클릭”이 필요합니다.</div>
         </div>
 
         <div class="split">
@@ -240,7 +253,7 @@
   const $ = (id) => document.getElementById(id);
   const bpmRange = $("bpm");
   const bpmText  = $("bpmText");
-  const bpmPill  = $("bpmPill");
+  const bpmNum   = $("bpmNum");
   const startBtn = $("startBtn");
   const tapBtn   = $("tapBtn");
   const accentBtn= $("accentBtn");
@@ -253,20 +266,14 @@
 
   const setBpmUI = (v) => {
     bpmText.textContent = String(v);
-    bpmPill.textContent = `${v} BPM`;
+    bpmNum.textContent  = String(v);
   };
-
-  const setTimeUI = () => {
-    timeText.textContent = `${beatsPerBar}/4`;
-  };
-  const setSubUI = () => {
-    subText.textContent = `${subdivision}x`;
-  };
+  const setTimeUI = () => { timeText.textContent = `${beatsPerBar}/4`; };
+  const setSubUI  = () => { subText.textContent = `${subdivision}x`; };
 
   // --- Scheduler (setInterval + lookahead) ---
   const lookaheadMs = 25;
   const scheduleAhead = 0.12; // seconds
-
   const secondsPerStep = () => (60 / bpm) / subdivision;
 
   const tick = () => {
@@ -275,11 +282,11 @@
     while (nextTick < now + scheduleAhead) {
       const isBeatBoundary = (step % subdivision) === 0;
       const beatIndex = Math.floor(step / subdivision) % beatsPerBar; // 0..beatsPerBar-1
-
       const isAccent = accentOn && isBeatBoundary && (beatIndex === 0);
+
       click(isAccent, muted);
 
-      // UI pulse (a bit delayed is OK)
+      // Visual pulse
       window.setTimeout(() => {
         dot.classList.remove("hit");
         void dot.offsetWidth;
@@ -297,7 +304,6 @@
     running = true;
     startBtn.textContent = "Stop";
     startBtn.classList.add("on");
-
     step = 0;
     nextTick = ctx.currentTime + 0.05;
     timerId = window.setInterval(tick, lookaheadMs);
@@ -328,8 +334,6 @@
       bpm = clamped;
       bpmRange.value = String(clamped);
       setBpmUI(clamped);
-
-      // 작은 피드백 클릭
       click(false, muted);
     } else {
       click(false, muted);
@@ -337,13 +341,9 @@
   };
 
   // --- Events ---
-  bpmRange.addEventListener("input", async (e) => {
+  bpmRange.addEventListener("input", (e) => {
     bpm = Number(e.target.value);
     setBpmUI(bpm);
-    // 재생 중이면 템포를 자연스럽게 반영
-    if (running && ctx) {
-      // 다음 tick 간격은 secondsPerStep()에서 자동 반영
-    }
   });
 
   startBtn.addEventListener("click", async () => {
@@ -366,13 +366,13 @@
   timeSig.addEventListener("change", (e) => {
     beatsPerBar = Number(e.target.value);
     setTimeUI();
-    if (running) { step = 0; } // 마디 감각을 다시 맞춤
+    if (running) step = 0;
   });
 
   subSel.addEventListener("change", (e) => {
     subdivision = Number(e.target.value);
     setSubUI();
-    if (running) { step = 0; } // subdivision 바꾸면 다시 시작 느낌
+    if (running) step = 0;
   });
 
   // init
