@@ -6,7 +6,7 @@
   <title>Notion Metronome</title>
   <style>
     :root{
-      --bg:#0b0c10; --panel:#12141a; --text:#e8eaf0; --muted:#a7adbb;
+      --panel:#12141a; --text:#e8eaf0; --muted:#a7adbb;
       --line:#242837; --accent:#8bf5c1; --warn:#ffd166;
       --radius:18px;
     }
@@ -16,45 +16,57 @@
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo", "Noto Sans KR", Arial;
       background:transparent; color:var(--text);
     }
+
     .wrap{ width:100%; height:100%; padding:14px; }
     .card{
       background:linear-gradient(180deg, rgba(18,20,26,.92), rgba(18,20,26,.78));
       border:1px solid var(--line);
       border-radius:var(--radius);
-      padding:16px;
+      padding:22px 16px 16px; /* ✅ 상단 여백 증가 */
       box-shadow: 0 10px 34px rgba(0,0,0,.36);
       backdrop-filter: blur(10px);
     }
 
-    /* === Header (center BPM badge + dot above) === */
+    /* === Header (multi dots + centered BPM badge) === */
     .header{
       display:flex;
       align-items:center;
       justify-content:center;
-      margin-bottom:12px;
+      margin-top:4px;          /* ✅ 상단 여백 */
+      margin-bottom:14px;
     }
     .badgeWrap{
       display:flex;
       flex-direction:column;
       align-items:center;
-      gap:8px;
+      gap:12px;                /* ✅ dots ↔ badge 간격 */
     }
-    .dot{
-      width:12px; height:12px; border-radius:999px;
-      background:rgba(255,255,255,.18);
-      border:1px solid rgba(255,255,255,.12);
+
+    /* multi beat dots */
+    .dotsRow{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding-top:2px;         /* ✅ 상단 여백 살짝 */
+    }
+    .beatDot{
+      width:10px; height:10px; border-radius:999px;
+      background:rgba(255,255,255,.16);
+      border:1px solid rgba(255,255,255,.10);
       box-shadow: 0 0 0 0 rgba(139,245,193,0);
-      transition: all .08s ease;
+      transition: transform .08s ease, box-shadow .08s ease, background .08s ease, border-color .08s ease;
     }
-    .dot.hit{
+    .beatDot.active{
+      transform: scale(1.15);
       background: var(--accent);
-      box-shadow: 0 0 0 10px rgba(139,245,193,.12);
       border-color: rgba(139,245,193,.55);
+      box-shadow: 0 0 0 9px rgba(139,245,193,.12);
     }
-    .dot.accent.hit{
+    .beatDot.active.accent{
       background: var(--warn);
-      box-shadow: 0 0 0 10px rgba(255,209,102,.12);
       border-color: rgba(255,209,102,.55);
+      box-shadow: 0 0 0 9px rgba(255,209,102,.12);
     }
 
     .bpmBadge{
@@ -71,7 +83,7 @@
     .bpmNum{
       font-size:34px;
       font-weight:900;
-      letter-spacing: .3px;
+      letter-spacing:.3px;
       line-height:1;
       min-width:84px;
       text-align:right;
@@ -86,300 +98,5 @@
     }
 
     /* === Controls === */
-    .grid{ display:grid; grid-template-columns: 1fr; gap:10px; }
-    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .grid{ display:grid; grid-template-columns: 1fr; gap:10px;
 
-    button{
-      appearance:none; border:1px solid var(--line);
-      background:rgba(0,0,0,.22); color:var(--text);
-      border-radius:12px;
-      padding:10px 12px;
-      font-weight:800;
-      cursor:pointer;
-      transition: transform .05s ease, background .15s ease, border-color .15s ease;
-      user-select:none;
-      white-space:nowrap;
-    }
-    button:hover{border-color:#2f3550}
-    button:active{transform: translateY(1px)}
-    button.primary{
-      background:rgba(139,245,193,.14);
-      border-color: rgba(139,245,193,.45);
-    }
-    button.primary.on{
-      background:rgba(139,245,193,.22);
-      border-color: rgba(139,245,193,.72);
-    }
-    button.tap{
-      background:rgba(255,209,102,.10);
-      border-color: rgba(255,209,102,.45);
-    }
-
-    .controls{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-      background:rgba(0,0,0,.14);
-    }
-    .label{
-      font-size:12px; color:var(--muted);
-      display:flex; justify-content:space-between; align-items:center;
-      margin-bottom:8px;
-    }
-    input[type="range"]{ width:100% }
-
-    .split{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
-    select{
-      width:100%;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:10px 12px;
-      background:rgba(0,0,0,.22);
-      color:var(--text);
-      outline:none;
-    }
-    @media (max-width: 420px){
-      .split{grid-template-columns: 1fr;}
-      .bpmNum{font-size:30px; min-width:78px}
-    }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="card">
-
-      <!-- Header: dot above + BIG centered BPM badge -->
-      <div class="header">
-        <div class="badgeWrap">
-          <div id="dot" class="dot"></div>
-          <div class="bpmBadge" aria-label="BPM badge">
-            <div id="bpmNum" class="bpmNum">120</div>
-            <div class="bpmUnit">BPM</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid">
-        <div class="row">
-          <button id="startBtn" class="primary">Start</button>
-          <button id="tapBtn" class="tap">Tap</button>
-          <button id="accentBtn">Accent: ON</button>
-          <button id="muteBtn">Sound: ON</button>
-        </div>
-
-        <div class="controls">
-          <div class="label">
-            <span>BPM</span>
-            <span id="bpmText">120</span>
-          </div>
-          <input id="bpm" type="range" min="30" max="240" value="120" />
-        </div>
-
-        <div class="split">
-          <div class="controls">
-            <div class="label">
-              <span>Time</span>
-              <span id="timeText">4/4</span>
-            </div>
-            <select id="timeSig">
-              <option value="2">2/4</option>
-              <option value="3">3/4</option>
-              <option value="4" selected>4/4</option>
-              <option value="5">5/4</option>
-              <option value="6">6/8 (treated as 6)</option>
-            </select>
-          </div>
-
-          <div class="controls">
-            <div class="label">
-              <span>Subdivision</span>
-              <span id="subText">1x</span>
-            </div>
-            <select id="sub">
-              <option value="1" selected>Quarter (1x)</option>
-              <option value="2">Eighth (2x)</option>
-              <option value="3">Triplet (3x)</option>
-              <option value="4">Sixteenth (4x)</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-<script>
-(() => {
-  // --- Audio (WebAudio) ---
-  let ctx = null;
-  const ensureAudio = async () => {
-    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state !== "running") await ctx.resume();
-  };
-
-  const click = (accent=false, muted=false) => {
-    if (!ctx || muted) return;
-    const t = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "square";
-    osc.frequency.value = accent ? 1400 : 900;
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(accent ? 0.12 : 0.08, t + 0.001);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start(t);
-    osc.stop(t + 0.04);
-  };
-
-  // --- State ---
-  let bpm = 120;
-  let running = false;
-  let muted = false;
-  let accentOn = true;
-
-  let beatsPerBar = 4;
-  let subdivision = 1;
-
-  let step = 0;          // includes subdivision steps
-  let timerId = null;
-  let nextTick = 0;
-
-  // --- UI ---
-  const $ = (id) => document.getElementById(id);
-  const bpmRange = $("bpm");
-  const bpmText  = $("bpmText");
-  const bpmNum   = $("bpmNum");
-  const startBtn = $("startBtn");
-  const tapBtn   = $("tapBtn");
-  const accentBtn= $("accentBtn");
-  const muteBtn  = $("muteBtn");
-  const dot      = $("dot");
-  const timeSig  = $("timeSig");
-  const timeText = $("timeText");
-  const subSel   = $("sub");
-  const subText  = $("subText");
-
-  const setBpmUI = (v) => {
-    bpmText.textContent = String(v);
-    bpmNum.textContent  = String(v);
-  };
-  const setTimeUI = () => { timeText.textContent = `${beatsPerBar}/4`; };
-  const setSubUI  = () => { subText.textContent = `${subdivision}x`; };
-
-  // --- Scheduler (setInterval + lookahead) ---
-  const lookaheadMs = 25;
-  const scheduleAhead = 0.12; // seconds
-  const secondsPerStep = () => (60 / bpm) / subdivision;
-
-  const tick = () => {
-    const now = ctx.currentTime;
-
-    while (nextTick < now + scheduleAhead) {
-      const isBeatBoundary = (step % subdivision) === 0;
-      const beatIndex = Math.floor(step / subdivision) % beatsPerBar; // 0..beatsPerBar-1
-      const isAccent = accentOn && isBeatBoundary && (beatIndex === 0);
-
-      click(isAccent, muted);
-
-      // Visual pulse
-      window.setTimeout(() => {
-        dot.classList.remove("hit");
-        void dot.offsetWidth;
-        dot.classList.add("hit");
-        dot.classList.toggle("accent", isAccent);
-      }, 0);
-
-      step++;
-      nextTick += secondsPerStep();
-    }
-  };
-
-  const start = async () => {
-    await ensureAudio();
-    running = true;
-    startBtn.textContent = "Stop";
-    startBtn.classList.add("on");
-    step = 0;
-    nextTick = ctx.currentTime + 0.05;
-    timerId = window.setInterval(tick, lookaheadMs);
-  };
-
-  const stop = () => {
-    running = false;
-    startBtn.textContent = "Start";
-    startBtn.classList.remove("on");
-    if (timerId) window.clearInterval(timerId);
-    timerId = null;
-  };
-
-  // --- Tap tempo ---
-  let taps = [];
-  const tap = async () => {
-    await ensureAudio();
-    const t = performance.now();
-    taps.push(t);
-    if (taps.length > 6) taps.shift();
-
-    if (taps.length >= 2) {
-      const intervals = [];
-      for (let i=1;i<taps.length;i++) intervals.push(taps[i]-taps[i-1]);
-      const avg = intervals.reduce((a,b)=>a+b,0)/intervals.length;
-      const newBpm = Math.round(60000 / avg);
-      const clamped = Math.max(30, Math.min(240, newBpm));
-      bpm = clamped;
-      bpmRange.value = String(clamped);
-      setBpmUI(clamped);
-      click(false, muted);
-    } else {
-      click(false, muted);
-    }
-  };
-
-  // --- Events ---
-  bpmRange.addEventListener("input", (e) => {
-    bpm = Number(e.target.value);
-    setBpmUI(bpm);
-  });
-
-  startBtn.addEventListener("click", async () => {
-    if (!running) await start();
-    else stop();
-  });
-
-  tapBtn.addEventListener("click", tap);
-
-  accentBtn.addEventListener("click", () => {
-    accentOn = !accentOn;
-    accentBtn.textContent = `Accent: ${accentOn ? "ON" : "OFF"}`;
-  });
-
-  muteBtn.addEventListener("click", () => {
-    muted = !muted;
-    muteBtn.textContent = `Sound: ${muted ? "OFF" : "ON"}`;
-  });
-
-  timeSig.addEventListener("change", (e) => {
-    beatsPerBar = Number(e.target.value);
-    setTimeUI();
-    if (running) step = 0;
-  });
-
-  subSel.addEventListener("change", (e) => {
-    subdivision = Number(e.target.value);
-    setSubUI();
-    if (running) step = 0;
-  });
-
-  // init
-  setBpmUI(bpm);
-  setTimeUI();
-  setSubUI();
-})();
-</script>
-</body>
-</html>
