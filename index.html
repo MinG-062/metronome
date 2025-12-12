@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Notion Metronome</title>
+  <style>
+    :root{
+      --bg:#0b0c10; --panel:#12141a; --text:#e8eaf0; --muted:#a7adbb;
+      --line:#242837; --accent:#8bf5c1; --warn:#ffd166;
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo", "Noto Sans KR", Arial;
+      background:transparent; color:var(--text);
+    }
+    .wrap{
+      width:100%; height:100%;
+      padding:14px;
+    }
+    .card{
+      background:linear-gradient(180deg, rgba(18,20,26,.92), rgba(18,20,26,.78));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:14px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+    }
+    .top{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom:10px;
+    }
+    .title{
+      display:flex; flex-direction:column; gap:2px;
+    }
+    .title b{font-size:14px; letter-spacing:.2px}
+    .title span{font-size:12px; color:var(--muted)}
+    .pill{
+      font-variant-numeric: tabular-nums;
+      padding:8px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:rgba(0,0,0,.2);
+      min-width:92px;
+      text-align:center;
+      font-weight:700;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    .row{
+      display:flex; gap:10px; align-items:center;
+    }
+    button{
+      appearance:none; border:1px solid var(--line);
+      background:rgba(0,0,0,.22); color:var(--text);
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:700;
+      cursor:pointer;
+      transition: transform .05s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+      white-space:nowrap;
+    }
+    button:hover{border-color:#2f3550}
+    button:active{transform: translateY(1px)}
+    button.primary{
+      background:rgba(139,245,193,.14);
+      border-color: rgba(139,245,193,.45);
+    }
+    button.primary.on{
+      background:rgba(139,245,193,.22);
+      border-color: rgba(139,245,193,.72);
+    }
+    button.tap{
+      background:rgba(255,209,102,.10);
+      border-color: rgba(255,209,102,.45);
+    }
+    .controls{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      background:rgba(0,0,0,.14);
+    }
+    .label{
+      font-size:12px; color:var(--muted);
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:8px;
+    }
+    input[type="range"]{width:100%}
+    select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      background:rgba(0,0,0,.22);
+      color:var(--text);
+      outline:none;
+    }
+    .tiny{
+      font-size:11px; color:var(--muted); line-height:1.4;
+      margin-top:8px;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:999px;
+      background:rgba(255,255,255,.18);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: 0 0 0 0 rgba(139,245,193,0);
+      transition: all .08s ease;
+    }
+    .dot.hit{
+      background: var(--accent);
+      box-shadow: 0 0 0 8px rgba(139,245,193,.12);
+      border-color: rgba(139,245,193,.55);
+    }
+    .dot.accent.hit{
+      background: var(--warn);
+      box-shadow: 0 0 0 8px rgba(255,209,102,.12);
+      border-color: rgba(255,209,102,.55);
+    }
+    .meter{
+      display:flex; align-items:center; gap:8px;
+    }
+    .split{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 420px){
+      .split{grid-template-columns: 1fr;}
+      .pill{min-width:86px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="top">
+        <div class="title">
+          <b>Metronome</b>
+          <span>Notion embed friendly</span>
+        </div>
+        <div class="meter">
+          <div id="dot" class="dot accent"></div>
+          <div id="bpmPill" class="pill">120 BPM</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="row">
+          <button id="startBtn" class="primary">Start</button>
+          <button id="tapBtn" class="tap">Tap</button>
+          <button id="accentBtn">Accent: ON</button>
+          <button id="muteBtn">Sound: ON</button>
+        </div>
+
+        <div class="controls">
+          <div class="label">
+            <span>BPM</span>
+            <span id="bpmText">120</span>
+          </div>
+          <input id="bpm" type="range" min="30" max="240" value="120" />
+          <div class="tiny">팁: 노션/브라우저는 자동재생을 막을 수 있어요. 처음엔 Start/Tap 같은 “사용자 클릭”이 필요합니다.</div>
+        </div>
+
+        <div class="split">
+          <div class="controls">
+            <div class="label">
+              <span>Time</span>
+              <span id="timeText">4/4</span>
+            </div>
+            <select id="timeSig">
+              <option value="2">2/4</option>
+              <option value="3">3/4</option>
+              <option value="4" selected>4/4</option>
+              <option value="5">5/4</option>
+              <option value="6">6/8 (treated as 6)</option>
+            </select>
+          </div>
+
+          <div class="controls">
+            <div class="label">
+              <span>Subdivision</span>
+              <span id="subText">1x</span>
+            </div>
+            <select id="sub">
+              <option value="1" selected>Quarter (1x)</option>
+              <option value="2">Eighth (2x)</option>
+              <option value="3">Triplet (3x)</option>
+              <option value="4">Sixteenth (4x)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+(() => {
+  // --- Audio (WebAudio) ---
+  let ctx = null;
+  const ensureAudio = async () => {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state !== "running") await ctx.resume();
+  };
+
+  const click = (accent=false, muted=false) => {
+    if (!ctx || muted) return;
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "square";
+    osc.frequency.value = accent ? 1400 : 900;
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(accent ? 0.12 : 0.08, t + 0.001);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.04);
+  };
+
+  // --- State ---
+  let bpm = 120;
+  let running = false;
+  let muted = false;
+  let accentOn = true;
+
+  let beatsPerBar = 4;
+  let subdivision = 1;
+
+  let step = 0;          // includes subdivision steps
+  let timerId = null;
+  let nextTick = 0;
+
+  // --- UI ---
+  const $ = (id) => document.getElementById(id);
+  const bpmRange = $("bpm");
+  const bpmText  = $("bpmText");
+  const bpmPill  = $("bpmPill");
+  const startBtn = $("startBtn");
+  const tapBtn   = $("tapBtn");
+  const accentBtn= $("accentBtn");
+  const muteBtn  = $("muteBtn");
+  const dot      = $("dot");
+  const timeSig  = $("timeSig");
+  const timeText = $("timeText");
+  const subSel   = $("sub");
+  const subText  = $("subText");
+
+  const setBpmUI = (v) => {
+    bpmText.textContent = String(v);
+    bpmPill.textContent = `${v} BPM`;
+  };
+
+  const setTimeUI = () => {
+    timeText.textContent = `${beatsPerBar}/4`;
+  };
+  const setSubUI = () => {
+    subText.textContent = `${subdivision}x`;
+  };
+
+  // --- Scheduler (setInterval + lookahead) ---
+  const lookaheadMs = 25;
+  const scheduleAhead = 0.12; // seconds
+
+  const secondsPerStep = () => (60 / bpm) / subdivision;
+
+  const tick = () => {
+    const now = ctx.currentTime;
+
+    while (nextTick < now + scheduleAhead) {
+      const isBeatBoundary = (step % subdivision) === 0;
+      const beatIndex = Math.floor(step / subdivision) % beatsPerBar; // 0..beatsPerBar-1
+
+      const isAccent = accentOn && isBeatBoundary && (beatIndex === 0);
+      click(isAccent, muted);
+
+      // UI pulse (a bit delayed is OK)
+      window.setTimeout(() => {
+        dot.classList.remove("hit");
+        void dot.offsetWidth;
+        dot.classList.add("hit");
+        dot.classList.toggle("accent", isAccent);
+      }, 0);
+
+      step++;
+      nextTick += secondsPerStep();
+    }
+  };
+
+  const start = async () => {
+    await ensureAudio();
+    running = true;
+    startBtn.textContent = "Stop";
+    startBtn.classList.add("on");
+
+    step = 0;
+    nextTick = ctx.currentTime + 0.05;
+    timerId = window.setInterval(tick, lookaheadMs);
+  };
+
+  const stop = () => {
+    running = false;
+    startBtn.textContent = "Start";
+    startBtn.classList.remove("on");
+    if (timerId) window.clearInterval(timerId);
+    timerId = null;
+  };
+
+  // --- Tap tempo ---
+  let taps = [];
+  const tap = async () => {
+    await ensureAudio();
+    const t = performance.now();
+    taps.push(t);
+    if (taps.length > 6) taps.shift();
+
+    if (taps.length >= 2) {
+      const intervals = [];
+      for (let i=1;i<taps.length;i++) intervals.push(taps[i]-taps[i-1]);
+      const avg = intervals.reduce((a,b)=>a+b,0)/intervals.length;
+      const newBpm = Math.round(60000 / avg);
+      const clamped = Math.max(30, Math.min(240, newBpm));
+      bpm = clamped;
+      bpmRange.value = String(clamped);
+      setBpmUI(clamped);
+
+      // 작은 피드백 클릭
+      click(false, muted);
+    } else {
+      click(false, muted);
+    }
+  };
+
+  // --- Events ---
+  bpmRange.addEventListener("input", async (e) => {
+    bpm = Number(e.target.value);
+    setBpmUI(bpm);
+    // 재생 중이면 템포를 자연스럽게 반영
+    if (running && ctx) {
+      // 다음 tick 간격은 secondsPerStep()에서 자동 반영
+    }
+  });
+
+  startBtn.addEventListener("click", async () => {
+    if (!running) await start();
+    else stop();
+  });
+
+  tapBtn.addEventListener("click", tap);
+
+  accentBtn.addEventListener("click", () => {
+    accentOn = !accentOn;
+    accentBtn.textContent = `Accent: ${accentOn ? "ON" : "OFF"}`;
+  });
+
+  muteBtn.addEventListener("click", () => {
+    muted = !muted;
+    muteBtn.textContent = `Sound: ${muted ? "OFF" : "ON"}`;
+  });
+
+  timeSig.addEventListener("change", (e) => {
+    beatsPerBar = Number(e.target.value);
+    setTimeUI();
+    if (running) { step = 0; } // 마디 감각을 다시 맞춤
+  });
+
+  subSel.addEventListener("change", (e) => {
+    subdivision = Number(e.target.value);
+    setSubUI();
+    if (running) { step = 0; } // subdivision 바꾸면 다시 시작 느낌
+  });
+
+  // init
+  setBpmUI(bpm);
+  setTimeUI();
+  setSubUI();
+})();
+</script>
+</body>
+</html>
